@@ -61,7 +61,7 @@ const selectedDNSRecord = await CFClient.dns.records.list({
 
 if (selectedDNSRecord.result.length > 0) {
   for (const record of selectedDNSRecord.result) {
-    if (record.type == "A") {
+    if (record.type == process.env.RECORD_TYPE!) {
       CFClient.dns.records.edit(record.id, {
         zone_id: selectedZone.id,
         content: myPublicIp,
@@ -72,6 +72,6 @@ if (selectedDNSRecord.result.length > 0) {
   CFClient.dns.records.create({
     zone_id: selectedZone.id,
     content: myPublicIp,
-    type: "A"
+    type: process.env.RECORD_TYPE!
   })
 }
