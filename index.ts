@@ -1,6 +1,21 @@
 import Cloudflare, { CloudflareError } from "cloudflare";
 import type { Zone } from "cloudflare/resources/zones/zones.mjs";
 
+// Checking environment variable setup
+if (process.env.CF_API_TOKEN == undefined) {
+  console.error("Environment variables not configured properly !");
+  console.info("Undefined environment variable : CF_API_TOKEN");
+  process.exit(1)
+}
+if (process.env.DOMAIN == undefined) {
+  console.error("Environment variables not configured properly !");
+  console.info("Undefined environment variable : DOMAIN");
+  process.exit(1);
+}
+if (process.env.SUBDOMAIN == undefined) {
+  console.info("Undefined BUT optional environment variable : SUBDOMAIN");
+}
+
 // Public IP address provider
 const publicIpProvider = "https://ipecho.io/json";
 
@@ -34,7 +49,7 @@ const myPublicIp = await fetch(publicIpProvider)
 // Show error and exit process if not found.
 let selectedZone: Zone | null = null;
 const { result } = await CFClient.zones.list({
-  name: process.env.DOMAIN_NAME!,
+  name: process.env.DOMAIN!,
 });
 if (result.length > 0) {
   for (const zone of result) {
@@ -56,8 +71,8 @@ if (selectedZone == null) {
 // Create A record if not found else update the record.
 const totalDomain =
   process.env.SUBDOMAIN != undefined
-    ? `${process.env.SUBDOMAIN}.${process.env.DOMAIN_NAME!}`
-    : process.env.DOMAIN_NAME!;
+    ? `${process.env.SUBDOMAIN}.${process.env.DOMAIN!}`
+    : process.env.DOMAIN!;
 
 const selectedDNSRecords = (
   await CFClient.dns.records.list({

@@ -1,13 +1,26 @@
 {
   "name": "cloudflare-ddns-js",
   "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
+  "author": {
+    "name": "sourabratabose"
   },
+  "description": "Small Typescript code which updates Cloudflare DNS records as configured in environment variable using the public IPv4 address of the local machine.",
+  "version": "1.0",
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "^bun@1.0.0",
+  "keywords": [
+    "SelfHosted",
+    "DDNS",
+    "Cloudflare",
+    "CF"
+  ],
+  "private": false,
   "scripts": {
     "start": "bun ./index.ts --env ./.env"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
