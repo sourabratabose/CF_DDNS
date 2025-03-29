@@ -1,4 +1,4 @@
-import Cloudflare from "cloudflare";
+import Cloudflare, { CloudflareError } from "cloudflare";
 import type { Zone } from "cloudflare/resources/zones/zones.mjs";
 
 // Public IP address provider
@@ -54,24 +54,50 @@ if (selectedZone == null) {
 
 // Select all the A records which exactly match the specified domain name in the environment variable (DOMAIN_NAME).
 // Create A record if not found else update the record.
-const selectedDNSRecord = await CFClient.dns.records.list({
-  zone_id: selectedZone.id,
-  name: { exact: process.env.DOMAIN_NAME! },
-});
+const totalDomain =
+  process.env.SUBDOMAIN != undefined
+    ? `${process.env.SUBDOMAIN}.${process.env.DOMAIN_NAME!}`
+    : process.env.DOMAIN_NAME!;
 
-if (selectedDNSRecord.result.length > 0) {
-  for (const record of selectedDNSRecord.result) {
-    if (record.type == process.env.RECORD_TYPE!) {
-      CFClient.dns.records.edit(record.id, {
-        zone_id: selectedZone.id,
-        content: myPublicIp,
-      });
-    }
+const selectedDNSRecords = (
+  await CFClient.dns.records.list({
+    zone_id: selectedZone.id,
+    name: {
+      exact: totalDomain,
+    },
+  })
+).result.filter((record) => record.type == "A");
+
+console.log("Current IPv4 address of the local machine is : ", myPublicIp);
+console.log("Total domain to set records for : ", totalDomain);
+
+if (selectedDNSRecords.length > 0) {
+  console.info("Existing records found! Updating them.");
+  for (const record of selectedDNSRecords) {
+    const updatedRecord = await CFClient.dns.records.edit(record.id, {
+      zone_id: selectedZone.id,
+      name: totalDomain,
+      content: myPublicIp,
+    });
+    console.info("Updated record value : ", updatedRecord);
   }
 } else {
-  CFClient.dns.records.create({
-    zone_id: selectedZone.id,
-    content: myPublicIp,
-    type: process.env.RECORD_TYPE!
-  })
+  console.info("No records found! Creating them.");
+  try {
+    const newRecord = await CFClient.dns.records.create({
+      zone_id: selectedZone.id,
+      name: totalDomain,
+      content: myPublicIp,
+      type: "A",
+      ttl: 1,
+      proxied: true,
+    });
+    console.info("New record created : ", newRecord);
+  } catch (err) {
+    if (err instanceof CloudflareError) {
+      console.error("Error occurred while creating records : ", err.message);
+    } else {
+      console.error("Unknown error occurred while creating records : ", err);
+    }
+  }
 }

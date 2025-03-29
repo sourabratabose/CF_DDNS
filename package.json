@@ -7,9 +7,7 @@
     "@types/bun": "latest"
   },
   "scripts": {
-    "build": "bun build ./index.ts --outdir ./ --target bun --env disable --minify",
-    "dev": "bun run build --watch ./index.ts",
-    "start": "bun index.js --env ./.env"
+    "start": "bun ./index.ts --env ./.env"
   },
   "peerDependencies": {
     "typescript": "^5"
